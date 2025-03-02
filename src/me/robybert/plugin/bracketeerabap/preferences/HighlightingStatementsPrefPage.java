@@ -1,13 +1,3 @@
-/*******************************************************************************
- * Copyright (c) Gil Barash - chookapp@yahoo.com
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *    Gil Barash - initial API and implementation
- *******************************************************************************/
 package me.robybert.plugin.bracketeerabap.preferences;
 
 import java.util.ArrayList;
@@ -40,7 +30,7 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import me.robybert.plugin.bracketeerabap.core.ProcessorsRegistry;
 
-public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage implements IWorkbenchPreferencePage {
+public class HighlightingStatementsPrefPage extends ChangingFieldsPrefPage implements IWorkbenchPreferencePage {
 
 	class TabInfo {
 		public java.util.List<BooleanFieldEditor> _highlighUseDefualtFE; // 0 - FG, 1 - BG
@@ -65,21 +55,12 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 
 	private final java.util.List<TabInfo> _tabInfos;
 
-	/**
-	 * Create the preference page.
-	 */
-	public HighlightingBracketsPrefPage() {
+	public HighlightingStatementsPrefPage() {
 		_tabInfos = new ArrayList<>();
-		// setDescription(Messages.HighlightingBracketsPrefPage_Description);
 	}
 
-	/**
-	 * Create contents of the preference page.
-	 *
-	 * @param parent
-	 */
 	@Override
-	public Control createPageContents(final Composite parent) {
+	protected Control createPageContents(Composite parent) {
 		final Composite container = new Composite(parent, SWT.NULL);
 		container.setLayout(new FillLayout(SWT.HORIZONTAL));
 
@@ -95,9 +76,6 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			return container;
 		}
 
-		// If we want to re-enable design mode, we should comment out this "for", and
-		// comment in this stub
-//        IConfigurationElement element = null; // stub
 		for (final IConfigurationElement element : config) {
 			final String pluginName = element.getAttribute("name"); //$NON-NLS-1$
 			final TabInfo tabInfo = new TabInfo();
@@ -124,7 +102,7 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			list.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(final SelectionEvent e) {
-					updateHihglightFieldEditors();
+					updateHighlightStatementFieldEditors();
 				}
 			});
 			list.setItems(Messages.HighlightingBracketsPrefPage_DefaultItem,
@@ -148,8 +126,8 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			final Composite composite_2 = new Composite(grpForegroundColor, SWT.NONE);
 			BooleanFieldEditor bfe = new BooleanFieldEditor(
 					PreferencesConstants.preferencePath(pluginName)
-							+ PreferencesConstants.Brackets.Highlights.getAttrPath(0, true)
-							+ PreferencesConstants.Brackets.Highlights.UseDefault,
+							+ PreferencesConstants.Statements.Highlights.getAttrPath(0, true)
+							+ PreferencesConstants.Statements.Highlights.UseDefault,
 					Messages.HighlightingBracketsPrefPage_UseDef, BooleanFieldEditor.DEFAULT, composite_2);
 			addField(bfe);
 			tabInfo._highlighUseDefualtFE.add(bfe);
@@ -162,8 +140,8 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			final Composite composite_4 = new Composite(composite_10, SWT.NONE);
 			ColorFieldEditor cfe = new ColorFieldEditor(
 					PreferencesConstants.preferencePath(pluginName)
-							+ PreferencesConstants.Brackets.Highlights.getAttrPath(0, true)
-							+ PreferencesConstants.Brackets.Highlights.Color,
+							+ PreferencesConstants.Statements.Highlights.getAttrPath(0, true)
+							+ PreferencesConstants.Statements.Highlights.Color,
 					Messages.HighlightingBracketsPrefPage_Color, composite_4);
 			addField(cfe);
 			tabInfo._highlighColorFE.add(cfe);
@@ -176,8 +154,8 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			final Composite composite_3 = new Composite(grpBackgroundColor, SWT.NONE);
 			bfe = new BooleanFieldEditor(
 					PreferencesConstants.preferencePath(pluginName)
-							+ PreferencesConstants.Brackets.Highlights.getAttrPath(0, false)
-							+ PreferencesConstants.Brackets.Highlights.UseDefault,
+							+ PreferencesConstants.Statements.Highlights.getAttrPath(0, false)
+							+ PreferencesConstants.Statements.Highlights.UseDefault,
 					Messages.HighlightingBracketsPrefPage_UseDef, BooleanFieldEditor.DEFAULT, composite_3);
 			addField(bfe);
 			tabInfo._highlighUseDefualtFE.add(bfe);
@@ -190,8 +168,8 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			final Composite composite_5 = new Composite(composite_14, SWT.NONE);
 			cfe = new ColorFieldEditor(
 					PreferencesConstants.preferencePath(pluginName)
-							+ PreferencesConstants.Brackets.Highlights.getAttrPath(0, false)
-							+ PreferencesConstants.Brackets.Highlights.Color,
+							+ PreferencesConstants.Statements.Highlights.getAttrPath(0, false)
+							+ PreferencesConstants.Statements.Highlights.Color,
 					Messages.HighlightingBracketsPrefPage_Color, composite_5);
 			addField(cfe);
 			tabInfo._highlighColorFE.add(cfe);
@@ -201,15 +179,15 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			composite_15.setSize(230, 25);
 			final ComboFieldEditor cofe = new ComboFieldEditor(
 					PreferencesConstants.preferencePath(tabInfo._name)
-							+ PreferencesConstants.Brackets.Highlights.getAttrPath(0, false)
-							+ PreferencesConstants.Brackets.Highlights.HighlightTypeAttr,
+							+ PreferencesConstants.Statements.Highlights.getAttrPath(0, false)
+							+ PreferencesConstants.Statements.Highlights.HighlightTypeAttr,
 					Messages.HighlightingBracketsPrefPage_BgStyle,
 					new String[][] {
-							{ PreferencesConstants.Brackets.Highlights.HighlightTypeValNone,
+							{ PreferencesConstants.Statements.Highlights.HighlightTypeValNone,
 									Messages.HighlightingBracketsPrefPage_None },
-							{ PreferencesConstants.Brackets.Highlights.HighlightTypeValSolid,
+							{ PreferencesConstants.Statements.Highlights.HighlightTypeValSolid,
 									Messages.HighlightingBracketsPrefPage_Solid },
-							{ PreferencesConstants.Brackets.Highlights.HighlightTypeValOutline,
+							{ PreferencesConstants.Statements.Highlights.HighlightTypeValOutline,
 									Messages.HighlightingBracketsPrefPage_Outline } },
 					composite_15);
 			addField(cofe);
@@ -228,7 +206,7 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			final Composite composite_20 = new Composite(composite_19, SWT.NONE);
 			bfe = new BooleanFieldEditor(
 					PreferencesConstants.preferencePath(tabInfo._name)
-							+ PreferencesConstants.Brackets.Annotations.Enable,
+							+ PreferencesConstants.Statements.Annotations.Enable,
 					Messages.HighlightingBracketsPrefPage_enableAnnotation, BooleanFieldEditor.DEFAULT, composite_20);
 			addField(bfe);
 
@@ -253,7 +231,8 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 
 			final Composite composite_6 = new Composite(grpSurroundingBrackets, SWT.NONE);
 			bfe = new BooleanFieldEditor(
-					PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Brackets.Surrounding.Enable,
+					PreferencesConstants.preferencePath(pluginName)
+							+ PreferencesConstants.Statements.Surrounding.Enable,
 					Messages.HighlightingBracketsPrefPage_Enable, BooleanFieldEditor.DEFAULT, composite_6);
 			addField(bfe);
 			tabInfo._surroundingEnableFE = bfe;
@@ -280,7 +259,7 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			// addition
 			addField(new StringPartCheckBoxes(
 					PreferencesConstants.preferencePath(pluginName)
-							+ PreferencesConstants.Brackets.Surrounding.ShowBrackets,
+							+ PreferencesConstants.Statements.Surrounding.ShowStatements,
 					grpPairsToShow, element.getAttribute(ProcessorsRegistry.SUPPORTED_BRACKETS_ATTR)));
 
 			final Composite composite_12 = new Composite(composite_16, SWT.NONE);
@@ -289,7 +268,7 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			final Composite composite_11 = new Composite(composite_12, SWT.NONE);
 			SpinnerFieldEditor spinner = new SpinnerFieldEditor(
 					PreferencesConstants.preferencePath(pluginName)
-							+ PreferencesConstants.Brackets.Surrounding.NumBracketsToShow,
+							+ PreferencesConstants.Statements.Surrounding.NumStatementsToShow,
 					Messages.HighlightingBracketsPrefPage_ShowUpTo, composite_11);
 			addField(spinner);
 			spinner.getSpinner().setMinimum(1);
@@ -305,7 +284,7 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			final Composite composite_18 = new Composite(composite_17, SWT.NONE);
 			spinner = new SpinnerFieldEditor(
 					PreferencesConstants.preferencePath(pluginName)
-							+ PreferencesConstants.Brackets.Surrounding.MinDistanceBetweenBrackets,
+							+ PreferencesConstants.Statements.Surrounding.MinDistanceBetweenStatements,
 					Messages.HighlightingBracketsPrefPage_ShowPairsWhichAreAtLeast, composite_18);
 			addField(spinner);
 			lblNewLabel = new Label(composite_17, SWT.NONE);
@@ -319,13 +298,13 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 
 			final Composite composite_9 = new Composite(grpHovering, SWT.NONE);
 			addField(new BooleanFieldEditor(
-					PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Brackets.Hovering.Enable,
+					PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Statements.Hovering.Enable,
 					Messages.HighlightingBracketsPrefPage_ShowHoveredPairs, BooleanFieldEditor.DEFAULT, composite_9));
 
 			final Composite composite_21 = new Composite(grpHovering, SWT.NONE);
 			bfe = new BooleanFieldEditor(
 					PreferencesConstants.preferencePath(pluginName)
-							+ PreferencesConstants.Brackets.Hovering.PopupEnable,
+							+ PreferencesConstants.Statements.Hovering.PopupEnable,
 					Messages.HighlightingBracketsPrefPage_ShowPopup, BooleanFieldEditor.DEFAULT, composite_21);
 			addField(bfe);
 			tabInfo._popupEn = bfe;
@@ -336,7 +315,7 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			composite_22.setLayoutData(gd_composite_22);
 			bfe = new BooleanFieldEditor(
 					PreferencesConstants.preferencePath(pluginName)
-							+ PreferencesConstants.Brackets.Hovering.PopupOnlyWithoutHint,
+							+ PreferencesConstants.Statements.Hovering.PopupOnlyWithoutHint,
 					Messages.HighlightingBracketsPrefPage_PopupOnlyWithoutHint, BooleanFieldEditor.DEFAULT,
 					composite_22);
 			addField(bfe);
@@ -348,15 +327,12 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 		return container;
 	}
 
-	/**
-	 * Initialize the preference page.
-	 */
 	@Override
-	public void init(final IWorkbench workbench) {
-		// Initialize the preference page
+	public void init(IWorkbench workbench) {
+		// TODO Auto-generated method stub
+
 	}
 
-	@Override
 	protected void initialize() {
 		String attr;
 
@@ -365,21 +341,21 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 			for (int idx = 1; idx < PreferencesConstants.MAX_PAIRS + 2; idx++) {
 				for (int i = 0; i < 2; i++) {
 					attr = PreferencesConstants.preferencePath(tabInfo._name)
-							+ PreferencesConstants.Brackets.Highlights.getAttrPath(idx, i == 0)
-							+ PreferencesConstants.Brackets.Highlights.UseDefault;
+							+ PreferencesConstants.Statements.Highlights.getAttrPath(idx, i == 0)
+							+ PreferencesConstants.Statements.Highlights.UseDefault;
 
 					_prefNames.add(attr);
 
 					attr = PreferencesConstants.preferencePath(tabInfo._name)
-							+ PreferencesConstants.Brackets.Highlights.getAttrPath(idx, i == 0)
-							+ PreferencesConstants.Brackets.Highlights.Color;
+							+ PreferencesConstants.Statements.Highlights.getAttrPath(idx, i == 0)
+							+ PreferencesConstants.Statements.Highlights.Color;
 
 					_prefNames.add(attr);
 				}
 
 				attr = PreferencesConstants.preferencePath(tabInfo._name)
-						+ PreferencesConstants.Brackets.Highlights.getAttrPath(idx, false)
-						+ PreferencesConstants.Brackets.Highlights.HighlightTypeAttr;
+						+ PreferencesConstants.Statements.Highlights.getAttrPath(idx, false)
+						+ PreferencesConstants.Statements.Highlights.HighlightTypeAttr;
 
 				_prefNames.add(attr);
 			}
@@ -389,52 +365,22 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 		updateAll();
 	}
 
-	@Override
-	protected void updateAll() {
-		updateHihglightFieldEditors();
-		updateSurroundingEnable();
-	}
-
-	private void updateHihglightFieldEditors() {
+	public void propertyChange(final PropertyChangeEvent event) {
+		super.propertyChange(event);
 		for (final TabInfo tabInfo : _tabInfos) {
-			final int idx = tabInfo._highlighList.getSelectionIndex();
-			for (int i = 0; i < 2; i++) {
-				tabInfo._highlighUseDefualtFE.get(i).store();
-				tabInfo._highlighUseDefualtFE.get(i)
-						.setPreferenceName(PreferencesConstants.preferencePath(tabInfo._name)
-								+ PreferencesConstants.Brackets.Highlights.getAttrPath(idx, i == 0)
-								+ PreferencesConstants.Brackets.Highlights.UseDefault);
-				if (idx == 0) {
-					tabInfo._highlighUseDefualtFE.get(i).setLabelText(Messages.HighlightingBracketsPrefPage_UseSysDef);
-				} else {
-					tabInfo._highlighUseDefualtFE.get(i).setLabelText(Messages.HighlightingBracketsPrefPage_UseDef);
-				}
-
-				tabInfo._highlighUseDefualtFE.get(i).load();
-
-				tabInfo._highlighColorFE.get(i).store();
-				tabInfo._highlighColorFE.get(i)
-						.setPreferenceName(PreferencesConstants.preferencePath(tabInfo._name)
-								+ PreferencesConstants.Brackets.Highlights.getAttrPath(idx, i == 0)
-								+ PreferencesConstants.Brackets.Highlights.Color);
-				tabInfo._highlighColorFE.get(i).load();
-
-				tabInfo._highlighColorFE.get(i).setEnabled(!tabInfo._highlighUseDefualtFE.get(i).getBooleanValue(),
-						tabInfo._highlighColorFEparent.get(i));
+			if (event.getSource() == tabInfo._surroundingEnableFE) {
+				updateSurroundingEnable();
 			}
 
-			tabInfo._highlighStyleFE.store();
-			tabInfo._highlighStyleFE.setPreferenceName(PreferencesConstants.preferencePath(tabInfo._name)
-					+ PreferencesConstants.Brackets.Highlights.getAttrPath(idx, false)
-					+ PreferencesConstants.Brackets.Highlights.HighlightTypeAttr);
-			tabInfo._highlighStyleFE.load();
-			tabInfo._highlighStyleFE.setEnabled(!tabInfo._highlighUseDefualtFE.get(1).getBooleanValue(),
-					tabInfo._highlighStyleFEparent);
+			for (final BooleanFieldEditor bfe : tabInfo._highlighUseDefualtFE) {
+				if (event.getSource() == bfe) {
+					updateHighlightStatementFieldEditors();
+				}
+			}
 
-			setEnable(tabInfo._annotationComposite, idx == 5);
-
-			setEnable(tabInfo._popupWithoutHint, tabInfo._popupEn.getBooleanValue());
-
+			if (event.getSource() == tabInfo._popupEn) {
+				updateHighlightStatementFieldEditors();
+			}
 		}
 	}
 
@@ -445,22 +391,14 @@ public class HighlightingBracketsPrefPage extends ChangingFieldsPrefPage impleme
 	}
 
 	@Override
-	public void propertyChange(final PropertyChangeEvent event) {
-		super.propertyChange(event);
-		for (final TabInfo tabInfo : _tabInfos) {
-			if (event.getSource() == tabInfo._surroundingEnableFE) {
-				updateSurroundingEnable();
-			}
+	protected void updateAll() {
+		updateHighlightStatementFieldEditors();
+		updateSurroundingEnable();
 
-			for (final BooleanFieldEditor bfe : tabInfo._highlighUseDefualtFE) {
-				if (event.getSource() == bfe) {
-					updateHihglightFieldEditors();
-				}
-			}
-
-			if (event.getSource() == tabInfo._popupEn) {
-				updateHihglightFieldEditors();
-			}
-		}
 	}
+
+	private void updateHighlightStatementFieldEditors() {
+
+	}
+
 }

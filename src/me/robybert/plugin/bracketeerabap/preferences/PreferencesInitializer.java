@@ -96,48 +96,53 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		/* the default */
 
 		store.setDefault(PreferencesConstants.preferencePath(pluginName)
-				+ PreferencesConstants.Highlights.getAttrPath(0, true) + PreferencesConstants.Highlights.UseDefault,
-				false);
+				+ PreferencesConstants.Brackets.Highlights.getAttrPath(0, true)
+				+ PreferencesConstants.Brackets.Highlights.UseDefault, false);
 
-		PreferenceConverter.setDefault(
-				store, PreferencesConstants.preferencePath(pluginName)
-						+ PreferencesConstants.Highlights.getAttrPath(0, true) + PreferencesConstants.Highlights.Color,
+		PreferenceConverter.setDefault(store,
+				PreferencesConstants.preferencePath(pluginName)
+						+ PreferencesConstants.Brackets.Highlights.getAttrPath(0, true)
+						+ PreferencesConstants.Brackets.Highlights.Color,
 				new RGB(255, 255, 255));
 
 		store.setDefault(PreferencesConstants.preferencePath(pluginName)
-				+ PreferencesConstants.Highlights.getAttrPath(0, false) + PreferencesConstants.Highlights.UseDefault,
-				true);
+				+ PreferencesConstants.Brackets.Highlights.getAttrPath(0, false)
+				+ PreferencesConstants.Brackets.Highlights.UseDefault, true);
 
 		/* the brackets... */
 
 		for (int i = 1; i < PreferencesConstants.MAX_PAIRS + 2; i++) {
 
 			store.setDefault(PreferencesConstants.preferencePath(pluginName)
-					+ PreferencesConstants.Highlights.getAttrPath(i, true) + PreferencesConstants.Highlights.UseDefault,
-					true);
+					+ PreferencesConstants.Brackets.Highlights.getAttrPath(i, true)
+					+ PreferencesConstants.Brackets.Highlights.UseDefault, true);
 
 			store.setDefault(PreferencesConstants.preferencePath(pluginName)
-					+ PreferencesConstants.Highlights.getAttrPath(i, false)
-					+ PreferencesConstants.Highlights.UseDefault, false);
+					+ PreferencesConstants.Brackets.Highlights.getAttrPath(i, false)
+					+ PreferencesConstants.Brackets.Highlights.UseDefault, false);
 
 			if (i == PreferencesConstants.MAX_PAIRS + 1) {
-				PreferenceConverter.setDefault(store, PreferencesConstants.preferencePath(pluginName)
-						+ PreferencesConstants.Highlights.getAttrPath(i, false) + PreferencesConstants.Highlights.Color,
+				PreferenceConverter.setDefault(store,
+						PreferencesConstants.preferencePath(pluginName)
+								+ PreferencesConstants.Brackets.Highlights.getAttrPath(i, false)
+								+ PreferencesConstants.Brackets.Highlights.Color,
 						new RGB(250, 0, 0));
 			} else {
 				final int max = PreferencesConstants.MAX_PAIRS;
 				// int val = (((max-i)+1)*255)/(max+1);
 				final int val = i * 255 / (max + 1);
-				PreferenceConverter.setDefault(store, PreferencesConstants.preferencePath(pluginName)
-						+ PreferencesConstants.Highlights.getAttrPath(i, false) + PreferencesConstants.Highlights.Color,
+				PreferenceConverter.setDefault(store,
+						PreferencesConstants.preferencePath(pluginName)
+								+ PreferencesConstants.Brackets.Highlights.getAttrPath(i, false)
+								+ PreferencesConstants.Brackets.Highlights.Color,
 						new RGB(val, val, val));
 			}
 
 			store.setDefault(
 					PreferencesConstants.preferencePath(pluginName)
-							+ PreferencesConstants.Highlights.getAttrPath(i, false)
-							+ PreferencesConstants.Highlights.HighlightTypeAttr,
-					PreferencesConstants.Highlights.HighlightTypeValSolid);
+							+ PreferencesConstants.Brackets.Highlights.getAttrPath(i, false)
+							+ PreferencesConstants.Brackets.Highlights.HighlightTypeAttr,
+					PreferencesConstants.Brackets.Highlights.HighlightTypeValSolid);
 
 			// TODO: get the real editor background default
 			/*
@@ -158,25 +163,28 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 			 */
 		}
 
-		store.setDefault(PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Annotations.Enable,
+		store.setDefault(
+				PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Brackets.Annotations.Enable,
 				true);
 
-		store.setDefault(PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Surrounding.Enable,
+		store.setDefault(
+				PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Brackets.Surrounding.Enable,
 				true);
-		store.setDefault(
-				PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Surrounding.NumBracketsToShow,
-				PreferencesConstants.MAX_PAIRS);
 		store.setDefault(PreferencesConstants.preferencePath(pluginName)
-				+ PreferencesConstants.Surrounding.MinDistanceBetweenBrackets, 1);
+				+ PreferencesConstants.Brackets.Surrounding.NumBracketsToShow, PreferencesConstants.MAX_PAIRS);
+		store.setDefault(PreferencesConstants.preferencePath(pluginName)
+				+ PreferencesConstants.Brackets.Surrounding.MinDistanceBetweenBrackets, 1);
 		store.setDefault(
-				PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Surrounding.ShowBrackets,
+				PreferencesConstants.preferencePath(pluginName)
+						+ PreferencesConstants.Brackets.Surrounding.ShowBrackets,
 				element.getAttribute(ProcessorsRegistry.SUPPORTED_BRACKETS_ATTR));
 
-		store.setDefault(PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Hovering.Enable, true);
-		store.setDefault(PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Hovering.PopupEnable,
-				true);
 		store.setDefault(
-				PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Hovering.PopupOnlyWithoutHint,
+				PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Brackets.Hovering.Enable, true);
+		store.setDefault(
+				PreferencesConstants.preferencePath(pluginName) + PreferencesConstants.Brackets.Hovering.PopupEnable,
 				true);
+		store.setDefault(PreferencesConstants.preferencePath(pluginName)
+				+ PreferencesConstants.Brackets.Hovering.PopupOnlyWithoutHint, true);
 	}
 }

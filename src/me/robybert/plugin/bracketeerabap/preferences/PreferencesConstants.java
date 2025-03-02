@@ -16,14 +16,16 @@ public final class PreferencesConstants {
 
 	public final static class Brackets {
 
+		private final static String BracketPath = "Brackets."; //$NON-NLS-1$
+
 		public final static class Annotations {
-			private static final String AnnotationPath = "Annotation."; //$NON-NLS-1$
+			private static final String AnnotationPath = BracketPath + "Annotation."; //$NON-NLS-1$
 
 			public static final String Enable = AnnotationPath + "MissingPair.Enable"; //$NON-NLS-1$
 		}
 
 		public final static class Surrounding {
-			private static final String SurroundingPath = "Surrounding."; //$NON-NLS-1$
+			private static final String SurroundingPath = BracketPath + "Surrounding."; //$NON-NLS-1$
 
 			public static final String Enable = SurroundingPath + "Enable"; //$NON-NLS-1$
 			public static final String ShowBrackets = SurroundingPath + "ShowBrackets"; //$NON-NLS-1$
@@ -32,7 +34,7 @@ public final class PreferencesConstants {
 		}
 
 		public final static class Hovering {
-			private static final String HoveringPath = "Hovering."; //$NON-NLS-1$
+			private static final String HoveringPath = BracketPath + "Hovering."; //$NON-NLS-1$
 
 			public static final String Enable = HoveringPath + "Enable"; //$NON-NLS-1$
 			public static final String PopupEnable = HoveringPath + "EnablePopup"; //$NON-NLS-1$
@@ -40,7 +42,7 @@ public final class PreferencesConstants {
 		}
 
 		public final static class Highlights {
-			private static final String HighlightsPath = "Highlights."; //$NON-NLS-1$
+			private static final String HighlightsPath = BracketPath + "Highlights."; //$NON-NLS-1$
 
 			private static final String Default = "Default."; //$NON-NLS-1$
 			private static final String MatchingPairPrefix = "MatchingPair"; //$NON-NLS-1$
@@ -76,27 +78,30 @@ public final class PreferencesConstants {
 				return path.toString();
 			}
 
-			public static final String UseDefault = "UseDefault"; //$NON-NLS-1$
-			public static final String Color = "Color"; //$NON-NLS-1$
-			public static final String HighlightTypeAttr = "HighlightType"; //$NON-NLS-1$
+			public static final String UseDefault = BracketPath + "UseDefault"; //$NON-NLS-1$
+			public static final String Color = BracketPath + "Color"; //$NON-NLS-1$
+			public static final String HighlightTypeAttr = BracketPath + "HighlightType"; //$NON-NLS-1$
 
-			public static final String HighlightTypeValNone = "None"; //$NON-NLS-1$
-			public static final String HighlightTypeValSolid = "Solid"; //$NON-NLS-1$
-			public static final String HighlightTypeValOutline = "Outline"; //$NON-NLS-1$
+			public static final String HighlightTypeValNone = BracketPath + "None"; //$NON-NLS-1$
+			public static final String HighlightTypeValSolid = BracketPath + "Solid"; //$NON-NLS-1$
+			public static final String HighlightTypeValOutline = BracketPath + "Outline"; //$NON-NLS-1$
 
 		}
 
 	}
 
 	public final static class Statements {
+
+		private static final String StatementsPath = "Statements."; //$NON-NLS-1$
+
 		public final static class Annotations {
-			private static final String AnnotationPath = "Annotation."; //$NON-NLS-1$
+			private static final String AnnotationPath = StatementsPath + "Annotation."; //$NON-NLS-1$
 
 			public static final String Enable = AnnotationPath + "MissingPair.Enable"; //$NON-NLS-1$
 		}
 
 		public final static class Surrounding {
-			private static final String SurroundingPath = "Surrounding."; //$NON-NLS-1$
+			private static final String SurroundingPath = StatementsPath + "Surrounding."; //$NON-NLS-1$
 
 			public static final String Enable = SurroundingPath + "Enable"; //$NON-NLS-1$
 			public static final String ShowStatements = SurroundingPath + "ShowBrackets"; //$NON-NLS-1$
@@ -105,7 +110,7 @@ public final class PreferencesConstants {
 		}
 
 		public final static class Hovering {
-			private static final String HoveringPath = "Hovering."; //$NON-NLS-1$
+			private static final String HoveringPath = StatementsPath + "Hovering."; //$NON-NLS-1$
 
 			public static final String Enable = HoveringPath + "Enable"; //$NON-NLS-1$
 			public static final String PopupEnable = HoveringPath + "EnablePopup"; //$NON-NLS-1$
@@ -113,7 +118,7 @@ public final class PreferencesConstants {
 		}
 
 		public final static class Highlights {
-			private static final String HighlightsPath = "Highlights."; //$NON-NLS-1$
+			private static final String HighlightsPath = StatementsPath + "Highlights."; //$NON-NLS-1$
 
 			private static final String Default = "Default."; //$NON-NLS-1$
 			private static final String MatchingPairPrefix = "MatchingPair"; //$NON-NLS-1$
@@ -149,13 +154,13 @@ public final class PreferencesConstants {
 				return path.toString();
 			}
 
-			public static final String UseDefault = "UseDefault"; //$NON-NLS-1$
-			public static final String Color = "Color"; //$NON-NLS-1$
-			public static final String HighlightTypeAttr = "HighlightType"; //$NON-NLS-1$
+			public static final String UseDefault = StatementsPath + "UseDefault"; //$NON-NLS-1$
+			public static final String Color = StatementsPath + "Color"; //$NON-NLS-1$
+			public static final String HighlightTypeAttr = StatementsPath + "HighlightType"; //$NON-NLS-1$
 
-			public static final String HighlightTypeValNone = "None"; //$NON-NLS-1$
-			public static final String HighlightTypeValSolid = "Solid"; //$NON-NLS-1$
-			public static final String HighlightTypeValOutline = "Outline"; //$NON-NLS-1$
+			public static final String HighlightTypeValNone = StatementsPath + "None"; //$NON-NLS-1$
+			public static final String HighlightTypeValSolid = StatementsPath + "Solid"; //$NON-NLS-1$
+			public static final String HighlightTypeValOutline = StatementsPath + "Outline"; //$NON-NLS-1$
 
 		}
 	}
