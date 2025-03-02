@@ -31,7 +31,8 @@ public class PaintableBracket extends PaintableObject {
 	public PaintableBracket(final Position position, final RGB foreground, final RGB background,
 			final String highlightType) {
 		super(position, foreground,
-				highlightType.equals(PreferencesConstants.Highlights.HighlightTypeValSolid) ? background : null);
+				highlightType.equals(PreferencesConstants.Brackets.Highlights.HighlightTypeValSolid) ? background
+						: null);
 		_highlightType = highlightType;
 		_outlineColor = background;
 	}
@@ -57,7 +58,7 @@ public class PaintableBracket extends PaintableObject {
 
 		gc.drawText(txt, p.x, p.y, _background == null);
 
-		if (_highlightType.equals(PreferencesConstants.Highlights.HighlightTypeValOutline)) {
+		if (_highlightType.equals(PreferencesConstants.Brackets.Highlights.HighlightTypeValOutline)) {
 			final Color oldFg = gc.getForeground();
 			Color fg = null;
 			if (_outlineColor == null) {
