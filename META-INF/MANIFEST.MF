@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: %Bundle-Name
+Bundle-SymbolicName: me.robybert.plugin.bracketeerabap.core;singleton:=true
+Bundle-Version: 2.0.0.qualifier
+Bundle-Activator: me.robybert.plugin.bracketeerabap.Activator
+Bundle-Vendor: %Bundle-Vendor
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.jface.text,
+ org.eclipse.ui.editors,
+ org.eclipse.core.resources
+Bundle-RequiredExecutionEnvironment: JavaSE-23
+Export-Package: me.robybert.plugin.bracketeerabap.common,
+ me.robybert.plugin.bracketeerabap.extensionpoint
+Bundle-ClassPath: .
+Bundle-ActivationPolicy: lazy
