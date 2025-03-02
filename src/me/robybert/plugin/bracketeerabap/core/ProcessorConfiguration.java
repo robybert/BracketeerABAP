@@ -52,8 +52,8 @@ public class ProcessorConfiguration implements IPropertyChangeListener {
 		private boolean _hoveredPairsEnable;
 		private int _minDistanceBetweenBrackets;
 
-		private boolean _popupEnabled;
-		private boolean _popupOnlyWithoutHint;
+//		private boolean _popupEnabled;
+//		private boolean _popupOnlyWithoutHint;
 
 		public PairConfiguration() {
 			_fgColors = new RGB[PreferencesConstants.MAX_PAIRS];
@@ -95,13 +95,13 @@ public class ProcessorConfiguration implements IPropertyChangeListener {
 			_minDistanceBetweenBrackets = distance;
 		}
 
-		public void setEnablePopup(final boolean enable) {
-			_popupEnabled = enable;
-		}
-
-		public void setPopupOnlyWithoutHint(final boolean enable) {
-			_popupOnlyWithoutHint = enable;
-		}
+//		public void setEnablePopup(final boolean enable) {
+//			_popupEnabled = enable;
+//		}
+//
+//		public void setPopupOnlyWithoutHint(final boolean enable) {
+//			_popupOnlyWithoutHint = enable;
+//		}
 
 		/* getters */
 
@@ -135,6 +135,113 @@ public class ProcessorConfiguration implements IPropertyChangeListener {
 
 		public int getMinDistanceBetweenBrackets() {
 			return _minDistanceBetweenBrackets;
+		}
+
+//		public boolean isPopupEnabled() {
+//			return _popupEnabled;
+//		}
+//
+//		public boolean showPopupOnlyWithoutHint() {
+//			return _popupOnlyWithoutHint;
+//		}
+
+	}
+
+	public class MatchingStatementsConfiguration {
+		private final RGB[] _fgColors;
+		private final RGB[] _bgColors;
+		private final String[] _highlightTypes;
+
+		private int _surroundingStatementsCount;
+		private boolean _surroundingStatementsEnable;
+		private String _surroundingStatementsToInclude;
+
+		private boolean _hoveredStatementsEnable;
+		private int _minDistanceBetweenStatements;
+
+		private boolean _popupEnabled;
+		private boolean _popupOnlyWithoutHint;
+
+		public MatchingStatementsConfiguration() {
+			_fgColors = new RGB[PreferencesConstants.MAX_STATEMENTS];
+			_bgColors = new RGB[PreferencesConstants.MAX_STATEMENTS];
+			_highlightTypes = new String[PreferencesConstants.MAX_STATEMENTS];
+		}
+
+		/* setters */
+
+		public void setColor(final boolean foregound, final int pairIdx, final RGB color) {
+			if (foregound) {
+				_fgColors[pairIdx] = color;
+			} else {
+				_bgColors[pairIdx] = color;
+			}
+		}
+
+		public void setHighlightType(final int pairIdx, final String highlightType) {
+			_highlightTypes[pairIdx] = highlightType;
+		}
+
+		public void setEnableSurrounding(final boolean enable) {
+			_surroundingStatementsEnable = enable;
+		}
+
+		public void setEnableHovering(final boolean enable) {
+			_hoveredStatementsEnable = enable;
+		}
+
+		public void setSurroundingStatementsCount(final int count) {
+			_surroundingStatementsCount = count;
+		}
+
+		public void setSurroundingStatementsToInclude(final String pairs) {
+			_surroundingStatementsToInclude = pairs;
+		}
+
+		public void setMinDistanceBetweenStatements(final int distance) {
+			_minDistanceBetweenStatements = distance;
+		}
+
+		public void setEnablePopup(final boolean enable) {
+			_popupEnabled = enable;
+		}
+
+		public void setPopupOnlyWithoutHint(final boolean enable) {
+			_popupOnlyWithoutHint = enable;
+		}
+
+		/* getters */
+
+		public RGB getColor(final boolean foregound, final int colorIndex) {
+			if (foregound) {
+				return _fgColors[colorIndex];
+			} else {
+				return _bgColors[colorIndex];
+			}
+		}
+
+		public String getHighlightType(final int pairIdx) {
+			return _highlightTypes[pairIdx];
+		}
+
+		public boolean isSurroundingStatementsEnabled() {
+			return _surroundingStatementsEnable;
+		}
+
+		public int getSurroundingStatementsCount() {
+			return _surroundingStatementsCount;
+		}
+
+		public String getSurroundingStatementsToInclude() {
+			return _surroundingStatementsToInclude;
+		}
+
+		public boolean isHoveredStatementsEnabled() {
+			return _hoveredStatementsEnable;
+		}
+
+		public int getMinDistanceBetweenStatements() {
+			return _minDistanceBetweenStatements;
 		}
 
 		public boolean isPopupEnabled() {
@@ -192,6 +299,52 @@ public class ProcessorConfiguration implements IPropertyChangeListener {
 			return _annotate;
 		}
 
+	}
+
+	public class SingleStatementConfiguration {
+		private RGB _fgColor;
+		private RGB _bgColor;
+		private String _highlightType;
+		private boolean _annotate;
+
+		public SingleStatementConfiguration() {
+		}
+
+		/* setters */
+
+		public void setColor(final boolean foregound, final RGB color) {
+			if (foregound) {
+				_fgColor = color;
+			} else {
+				_bgColor = color;
+			}
+		}
+
+		public void setHighlightType(final String highlightType) {
+			_highlightType = highlightType;
+		}
+
+		public void setAnnotate(final boolean enable) {
+			_annotate = enable;
+		}
+
+		/* getters */
+
+		public RGB getColor(final boolean foregound) {
+			if (foregound) {
+				return _fgColor;
+			} else {
+				return _bgColor;
+			}
+		}
+
+		public String getHighlightType() {
+			return _highlightType;
+		}
+
+		public boolean getAnnotate() {
+			return _annotate;
+		}
 	}
 
 	public class HintConfiguration implements IHintConfiguration {
@@ -304,7 +457,9 @@ public class ProcessorConfiguration implements IPropertyChangeListener {
 	}
 
 	private final PairConfiguration _pairConf;
+	private final MatchingStatementsConfiguration _matchingStatementsConf;
 	private final SingleBracketConfiguration _singleConf;
+	private final SingleStatementConfiguration _singleStatementConf;
 	private final HintConfiguration _hintConf;
 	private final GeneralConfiguration _generalConf;
 	private final String _name;
@@ -316,7 +471,9 @@ public class ProcessorConfiguration implements IPropertyChangeListener {
 
 	public ProcessorConfiguration(final IConfigurationElement confElement) {
 		_pairConf = new PairConfiguration();
+		_matchingStatementsConf = new MatchingStatementsConfiguration();
 		_singleConf = new SingleBracketConfiguration();
+		_singleStatementConf = new SingleStatementConfiguration();
 		_hintConf = new HintConfiguration();
 		_generalConf = new GeneralConfiguration();
 
@@ -349,6 +506,14 @@ public class ProcessorConfiguration implements IPropertyChangeListener {
 
 	public SingleBracketConfiguration getSingleBracketConfiguration() {
 		return _singleConf;
+	}
+
+	public MatchingStatementsConfiguration getMatchingStatementsConfiguration() {
+		return _matchingStatementsConf;
+	}
+
+	public SingleStatementConfiguration getingleStatementConfiguration() {
+		return _singleStatementConf;
 	}
 
 	public HintConfiguration getHintConfiguration() {
@@ -449,9 +614,13 @@ public class ProcessorConfiguration implements IPropertyChangeListener {
 
 	private void updateHighlightConf() {
 		final RGB[] defColor = new RGB[2]; // 0 - BG, 1 - FG
+		final RGB[] defColorStatements = new RGB[2];
 
 		defColor[0] = null;
 		defColor[1] = null;
+
+		defColorStatements[0] = null;
+		defColorStatements[1] = null;
 
 		final String prefBase = PreferencesConstants.preferencePath(_name);
 
@@ -460,82 +629,174 @@ public class ProcessorConfiguration implements IPropertyChangeListener {
 
 			/* default */
 
-			if (!_prefStore.getBoolean(prefBase + PreferencesConstants.Highlights.getAttrPath(0, foregound)
-					+ PreferencesConstants.Highlights.UseDefault)) {
+			if (!_prefStore.getBoolean(prefBase + PreferencesConstants.Brackets.Highlights.getAttrPath(0, foregound)
+					+ PreferencesConstants.Brackets.Highlights.UseDefault)) {
 				defColor[fgIndex] = PreferenceConverter.getColor(_prefStore,
-						prefBase + PreferencesConstants.Highlights.getAttrPath(0, foregound)
-								+ PreferencesConstants.Highlights.Color);
+						prefBase + PreferencesConstants.Brackets.Highlights.getAttrPath(0, foregound)
+								+ PreferencesConstants.Brackets.Highlights.Color);
+			}
+
+			if (!_prefStore.getBoolean(prefBase + PreferencesConstants.Statements.Highlights.getAttrPath(0, foregound)
+					+ PreferencesConstants.Statements.Highlights.UseDefault)) {
+				defColor[fgIndex] = PreferenceConverter.getColor(_prefStore,
+						prefBase + PreferencesConstants.Statements.Highlights.getAttrPath(0, foregound)
+								+ PreferencesConstants.Statements.Highlights.Color);
 			}
 
 			/* pair */
 
 			for (int pairIdx = 0; pairIdx < PreferencesConstants.MAX_PAIRS; pairIdx++) {
-				if (_prefStore.getBoolean(prefBase + PreferencesConstants.Highlights.getAttrPath(pairIdx + 1, foregound)
-						+ PreferencesConstants.Highlights.UseDefault)) {
+				if (_prefStore.getBoolean(
+						prefBase + PreferencesConstants.Brackets.Highlights.getAttrPath(pairIdx + 1, foregound)
+								+ PreferencesConstants.Brackets.Highlights.UseDefault)) {
 					_pairConf.setColor(foregound, pairIdx, defColor[fgIndex]);
 				} else {
 					_pairConf.setColor(foregound, pairIdx,
-							PreferenceConverter.getColor(_prefStore,
-									prefBase + PreferencesConstants.Highlights.getAttrPath(pairIdx + 1, foregound)
-											+ PreferencesConstants.Highlights.Color));
+							PreferenceConverter.getColor(_prefStore, prefBase
+									+ PreferencesConstants.Brackets.Highlights.getAttrPath(pairIdx + 1, foregound)
+									+ PreferencesConstants.Brackets.Highlights.Color));
 				}
 			}
 
-			_pairConf.setEnableSurrounding(_prefStore.getBoolean(prefBase + PreferencesConstants.Surrounding.Enable));
-			_pairConf.setEnableHovering(_prefStore.getBoolean(prefBase + PreferencesConstants.Hovering.Enable));
+			_pairConf.setEnableSurrounding(
+					_prefStore.getBoolean(prefBase + PreferencesConstants.Brackets.Surrounding.Enable));
+			_pairConf
+					.setEnableHovering(_prefStore.getBoolean(prefBase + PreferencesConstants.Brackets.Hovering.Enable));
 			_pairConf.setSurroundingPairsCount(
-					_prefStore.getInt(prefBase + PreferencesConstants.Surrounding.NumBracketsToShow));
+					_prefStore.getInt(prefBase + PreferencesConstants.Brackets.Surrounding.NumBracketsToShow));
 			_pairConf.setSurroundingPairsToInclude(
-					_prefStore.getString(prefBase + PreferencesConstants.Surrounding.ShowBrackets));
+					_prefStore.getString(prefBase + PreferencesConstants.Brackets.Surrounding.ShowBrackets));
 			_pairConf.setMinDistanceBetweenBrackets(
-					_prefStore.getInt(prefBase + PreferencesConstants.Surrounding.MinDistanceBetweenBrackets));
-			_pairConf.setEnablePopup(_prefStore.getBoolean(prefBase + PreferencesConstants.Hovering.PopupEnable));
-			_pairConf.setPopupOnlyWithoutHint(
-					_prefStore.getBoolean(prefBase + PreferencesConstants.Hovering.PopupOnlyWithoutHint));
+					_prefStore.getInt(prefBase + PreferencesConstants.Brackets.Surrounding.MinDistanceBetweenBrackets));
+//			_pairConf.setEnablePopup(_prefStore.getBoolean(prefBase + PreferencesConstants.Hovering.PopupEnable));
+//			_pairConf.setPopupOnlyWithoutHint(
+//					_prefStore.getBoolean(prefBase + PreferencesConstants.Hovering.PopupOnlyWithoutHint));
+
+			/* matching statements */
+
+			for (int statementIdx = 0; statementIdx < PreferencesConstants.MAX_STATEMENTS; statementIdx++) {
+				if (_prefStore.getBoolean(
+						prefBase + PreferencesConstants.Statements.Highlights.getAttrPath(statementIdx + 1, foregound)
+								+ PreferencesConstants.Statements.Highlights.UseDefault)) {
+					_matchingStatementsConf.setColor(foregound, statementIdx, defColorStatements[fgIndex]);
+				} else {
+					_matchingStatementsConf
+							.setColor(foregound, statementIdx,
+									PreferenceConverter.getColor(_prefStore,
+											prefBase + PreferencesConstants.Statements.Highlights
+													.getAttrPath(statementIdx + 1, foregound)
+													+ PreferencesConstants.Statements.Highlights.Color));
+				}
+			}
+
+			_matchingStatementsConf.setEnableHovering(
+					_prefStore.getBoolean(prefBase + PreferencesConstants.Statements.Hovering.Enable));
+			_matchingStatementsConf.setEnableSurrounding(
+					_prefStore.getBoolean(prefBase + PreferencesConstants.Statements.Surrounding.Enable));
+			_matchingStatementsConf.setSurroundingStatementsCount(
+					_prefStore.getInt(prefBase + PreferencesConstants.Statements.Surrounding.NumStatementsToShow));
+			_matchingStatementsConf.setSurroundingStatementsToInclude(
+					_prefStore.getString(prefBase + PreferencesConstants.Statements.Surrounding.ShowStatements));
+			_matchingStatementsConf.setMinDistanceBetweenStatements(_prefStore
+					.getInt(prefBase + PreferencesConstants.Statements.Surrounding.MinDistanceBetweenStatements));
+			_matchingStatementsConf.setEnablePopup(
+					_prefStore.getBoolean(prefBase + PreferencesConstants.Statements.Hovering.PopupEnable));
+			_matchingStatementsConf.setPopupOnlyWithoutHint(
+					_prefStore.getBoolean(prefBase + PreferencesConstants.Statements.Hovering.PopupOnlyWithoutHint));
 
 			/* single */
 
 			final int pairIdx = PreferencesConstants.MAX_PAIRS + 1;
 
-			if (_prefStore.getBoolean(prefBase + PreferencesConstants.Highlights.getAttrPath(pairIdx, foregound)
-					+ PreferencesConstants.Highlights.UseDefault)) {
+			if (_prefStore
+					.getBoolean(prefBase + PreferencesConstants.Brackets.Highlights.getAttrPath(pairIdx, foregound)
+							+ PreferencesConstants.Brackets.Highlights.UseDefault)) {
 				_singleConf.setColor(foregound, defColor[fgIndex]);
 			} else {
 				_singleConf.setColor(foregound,
 						PreferenceConverter.getColor(_prefStore,
-								prefBase + PreferencesConstants.Highlights.getAttrPath(pairIdx, foregound)
-										+ PreferencesConstants.Highlights.Color));
+								prefBase + PreferencesConstants.Brackets.Highlights.getAttrPath(pairIdx, foregound)
+										+ PreferencesConstants.Brackets.Highlights.Color));
+			}
+
+			/* single statements */
+
+			final int statementIdx = PreferencesConstants.MAX_STATEMENTS + 1;
+
+			if (_prefStore.getBoolean(
+					prefBase + PreferencesConstants.Statements.Highlights.getAttrPath(statementIdx, foregound)
+							+ PreferencesConstants.Statements.Highlights.UseDefault)) {
+				_singleConf.setColor(foregound, defColorStatements[fgIndex]);
+			} else {
+				_singleStatementConf.setColor(foregound,
+						PreferenceConverter.getColor(_prefStore, prefBase
+								+ PreferencesConstants.Statements.Highlights.getAttrPath(statementIdx, foregound)
+								+ PreferencesConstants.Statements.Highlights.Color));
 			}
 		}
 
 		/* Highlight type */
 		final String defHighlightType = _prefStore
-				.getString(prefBase + PreferencesConstants.Highlights.getAttrPath(0, false)
-						+ PreferencesConstants.Highlights.HighlightTypeAttr);
+				.getString(prefBase + PreferencesConstants.Brackets.Highlights.getAttrPath(0, false)
+						+ PreferencesConstants.Brackets.Highlights.HighlightTypeAttr);
 
 		for (int pairIdx = 0; pairIdx < PreferencesConstants.MAX_PAIRS; pairIdx++) {
-			if (_prefStore.getBoolean(prefBase + PreferencesConstants.Highlights.getAttrPath(pairIdx + 1, false)
-					+ PreferencesConstants.Highlights.UseDefault)) {
+			if (_prefStore
+					.getBoolean(prefBase + PreferencesConstants.Brackets.Highlights.getAttrPath(pairIdx + 1, false)
+							+ PreferencesConstants.Brackets.Highlights.UseDefault)) {
 				_pairConf.setHighlightType(pairIdx, defHighlightType);
 			} else {
 				_pairConf.setHighlightType(pairIdx,
-						_prefStore.getString(prefBase + PreferencesConstants.Highlights.getAttrPath(pairIdx + 1, false)
-								+ PreferencesConstants.Highlights.HighlightTypeAttr));
+						_prefStore.getString(
+								prefBase + PreferencesConstants.Brackets.Highlights.getAttrPath(pairIdx + 1, false)
+										+ PreferencesConstants.Brackets.Highlights.HighlightTypeAttr));
+			}
+		}
+
+		final String defHighlightStatementType = _prefStore
+				.getString(prefBase + PreferencesConstants.Statements.Highlights.getAttrPath(0, false)
+						+ PreferencesConstants.Statements.Highlights.HighlightTypeAttr);
+
+		for (int statementIdx = 0; statementIdx < PreferencesConstants.MAX_STATEMENTS; statementIdx++) {
+			if (_prefStore.getBoolean(
+					prefBase + PreferencesConstants.Statements.Highlights.getAttrPath(statementIdx + 1, false)
+							+ PreferencesConstants.Statements.Highlights.UseDefault)) {
+				_pairConf.setHighlightType(statementIdx, defHighlightStatementType);
+			} else {
+				_pairConf.setHighlightType(statementIdx,
+						_prefStore.getString(prefBase
+								+ PreferencesConstants.Statements.Highlights.getAttrPath(statementIdx + 1, false)
+								+ PreferencesConstants.Statements.Highlights.HighlightTypeAttr));
 			}
 		}
 
 		final int pairIdx = PreferencesConstants.MAX_PAIRS + 1;
 
-		if (_prefStore.getBoolean(prefBase + PreferencesConstants.Highlights.getAttrPath(pairIdx + 1, false)
-				+ PreferencesConstants.Highlights.UseDefault)) {
+		if (_prefStore.getBoolean(prefBase + PreferencesConstants.Brackets.Highlights.getAttrPath(pairIdx + 1, false)
+				+ PreferencesConstants.Brackets.Highlights.UseDefault)) {
 			_singleConf.setHighlightType(defHighlightType);
 		} else {
-			_singleConf.setHighlightType(
-					_prefStore.getString(prefBase + PreferencesConstants.Highlights.getAttrPath(pairIdx + 1, false)
-							+ PreferencesConstants.Highlights.HighlightTypeAttr));
+			_singleConf.setHighlightType(_prefStore
+					.getString(prefBase + PreferencesConstants.Brackets.Highlights.getAttrPath(pairIdx + 1, false)
+							+ PreferencesConstants.Brackets.Highlights.HighlightTypeAttr));
 		}
 
-		_singleConf.setAnnotate(_prefStore.getBoolean(prefBase + PreferencesConstants.Annotations.Enable));
+		final int statementIdx = PreferencesConstants.MAX_PAIRS + 1;
+
+		if (_prefStore
+				.getBoolean(prefBase + PreferencesConstants.Statements.Highlights.getAttrPath(statementIdx + 1, false)
+						+ PreferencesConstants.Statements.Highlights.UseDefault)) {
+			_singleConf.setHighlightType(defHighlightType);
+		} else {
+			_singleConf.setHighlightType(_prefStore.getString(
+					prefBase + PreferencesConstants.Statements.Highlights.getAttrPath(statementIdx + 1, false)
+							+ PreferencesConstants.Statements.Highlights.HighlightTypeAttr));
+		}
+
+		_singleConf.setAnnotate(_prefStore.getBoolean(prefBase + PreferencesConstants.Brackets.Annotations.Enable));
+
+		_singleStatementConf
+				.setAnnotate(_prefStore.getBoolean(prefBase + PreferencesConstants.Statements.Annotations.Enable));
 
 	}
 

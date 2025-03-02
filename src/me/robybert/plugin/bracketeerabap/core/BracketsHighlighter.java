@@ -18,7 +18,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.core.resources.IMarker;
@@ -55,7 +57,6 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.services.IDisposable;
@@ -66,7 +67,11 @@ import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
 import me.robybert.plugin.bracketeerabap.Activator;
 import me.robybert.plugin.bracketeerabap.common.BracketsPair;
 import me.robybert.plugin.bracketeerabap.common.Hint;
+import me.robybert.plugin.bracketeerabap.common.MatchObject;
+import me.robybert.plugin.bracketeerabap.common.MatchingStatements;
 import me.robybert.plugin.bracketeerabap.common.SingleBracket;
+import me.robybert.plugin.bracketeerabap.common.SingleObject;
+import me.robybert.plugin.bracketeerabap.common.SingleStatement;
 import me.robybert.plugin.bracketeerabap.core.ProcessorConfiguration.HintConfiguration;
 import me.robybert.plugin.bracketeerabap.extensionpoint.BracketeerProcessor;
 
@@ -87,6 +92,9 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 	private final List<PaintableBracket> _hoveredPairsToPaint;
 	private final List<PaintableBracket> _surroundingPairsToPaint;
 	private final List<PaintableBracket> _singleBracketsToPaint;
+	private final List<PaintableStatement> _hoveredStatementsToPaint;
+	private final List<PaintableStatement> _surroundingStatementsToPaint;
+	private final List<PaintableStatement> _singleStatementsToPaint;
 	private List<PaintableHint> _hintsToPaint;
 	private PaintableHint _hoveredHintToPaint;
 	private Point m_hoverEntryPoint;
@@ -94,6 +102,7 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 
 	private PaintableHint _mousePointingAtHint;
 	private SingleBracket _mousePointingAtBracket;
+	private SingleStatement _mousePointingAtStatement;
 	private boolean _mousePointerHand;
 
 	private int _caretOffset;
@@ -114,6 +123,9 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		_hoveredPairsToPaint = new LinkedList<>();
 		_surroundingPairsToPaint = new LinkedList<>();
 		_singleBracketsToPaint = new LinkedList<>();
+		_hoveredStatementsToPaint = new LinkedList<>();
+		_surroundingStatementsToPaint = new LinkedList<>();
+		_singleStatementsToPaint = new LinkedList<>();
 		_hintsToPaint = new ArrayList<>();
 		m_hoverEntryPoint = null;
 		_hoveredHintToPaint = null;
@@ -121,6 +133,7 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 
 		_mousePointingAtHint = null;
 		_mousePointingAtBracket = null;
+		_mousePointingAtStatement = null;
 		_mousePointerHand = false;
 	}
 
@@ -283,6 +296,23 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 				}
 				jumpToPosition(pos);
 			}
+			if (_mousePointingAtStatement != null) {
+				final List<MatchingStatements> statements = _processingThread.getBracketContainer()
+						.getMatchingStatements(_mousePointingAtStatement.getPosition().getOffset(), 1);
+				if (statements.size() == 0 || statements.size() > 1) {
+					Activator.log(Messages.BracketsHighlighter_ErrMatchingStatementsNotFound);
+					break;
+				}
+				final MatchingStatements statement = statements.get(0);
+				Position pos = null;
+				if (statement.getOpeningStatement().equals(_mousePointingAtStatement)) {
+					pos = statement.getClosingStatement().getPosition();
+				}
+				if (statement.getClosingStatement().equals(_mousePointingAtStatement)) {
+					pos = statement.getOpeningStatement().getPosition();
+				}
+				jumpToPosition(pos);
+			}
 			break;
 
 		case SWT.KeyDown:
@@ -402,6 +432,29 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 				}
 			}
 
+			for (final PaintableObject paintObj : _singleStatementsToPaint) {
+				if (paintObj.getPosition().overlapsWith(startOfset, length)) {
+					paintObj.paint(event.gc, _textWidget, _sourceViewer.getDocument(),
+							getWidgetRange(paintObj.getPosition().getOffset(), paintObj.getPosition().getLength()),
+							null);
+				}
+			}
+
+			List<PaintableStatement> statementsToPaint;
+			if (_hoveredStatementsToPaint.isEmpty()) {
+				statementsToPaint = _surroundingStatementsToPaint;
+			} else {
+				statementsToPaint = _hoveredStatementsToPaint;
+			}
+
+			for (final PaintableObject paintObj : statementsToPaint) {
+				if (paintObj.getPosition().overlapsWith(startOfset, length)) {
+					paintObj.paint(event.gc, _textWidget, _sourceViewer.getDocument(),
+							getWidgetRange(paintObj.getPosition().getOffset(), paintObj.getPosition().getLength()),
+							null);
+				}
+			}
+
 			boolean hoveredHintPainted = false;
 			for (PaintableHint paintObj : _hintsToPaint) {
 				if (_hoveredHintToPaint != null && _hoveredHintToPaint.getPosition().equals(paintObj.getPosition())) {
@@ -441,7 +494,10 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		boolean updated = false;
 		updated |= clearSurroundingPairsToPaint();
 		updated |= clearSingleBracketsToPaint();
-		rebuild(true, true, true, updated);
+		updated |= clearSurroundingStatementsToPaint();
+		updated |= clearSingleStatementsToPaint();
+
+		rebuild(true, true, true, true, true, updated);
 	}
 
 	@Override
@@ -523,7 +579,7 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 	private void rebuild(final boolean bracketsPairsTouched, final boolean singleBracketsTouched,
 			final boolean hintsTouched, final boolean matchingStatementsTouched, final boolean singleStatementsTouched,
 			final boolean alwaysRedraw) {
-//TODO: add statements
+
 		boolean update = alwaysRedraw;
 		if (bracketsPairsTouched) {
 			update |= updateSurroundingPairsToPaint(_caretOffset);
@@ -539,11 +595,12 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		update |= clearHoveredHint();
 
 		if (matchingStatementsTouched) {
-//			update |= ;
+			update |= updateSurroundingStatementsToPaint(_caretOffset);
+			update |= clearHoveredStatementsToPaint();
 		}
 
 		if (singleStatementsTouched) {
-//			update \= ;
+			update |= updateSingleStatements();
 		}
 
 		if (update) {
@@ -557,7 +614,7 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 	}
 
 	private void updateMousePointer() {
-		if (_mousePointingAtHint != null || _mousePointingAtBracket != null) {
+		if (_mousePointingAtHint != null || _mousePointingAtBracket != null || _mousePointingAtStatement != null) {
 			if (_mousePointerHand) {
 				return;
 			}
@@ -609,6 +666,12 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 			_textWidget.redraw();
 			_mousePointingAtBracket = null;
 		}
+
+		if (_mousePointingAtStatement != null) {
+			clearHoveredStatementsToPaint();
+			_textWidget.redraw();
+			_mousePointingAtStatement = null;
+		}
 	}
 
 	private void mousePointingAt(final int x, final int y) {
@@ -627,6 +690,22 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 
 				_mousePointingAtBracket = null;
 				clearHoveredPairsToPaint();
+				clearHoveredHint();
+//				TODO: check this
+//				clearPopup();
+
+				// TODO: optimize? (redraw only the needed sections)
+				_textWidget.redraw();
+			}
+
+			if (_mousePointingAtStatement != null) {
+				final Position pos = _mousePointingAtStatement.getPosition();
+				if (pos != null && pos.getOffset() == caret) {
+					return;
+				}
+
+				_mousePointingAtStatement = null;
+				clearHoveredStatementsToPaint();
 				clearHoveredHint();
 				clearPopup();
 
@@ -667,28 +746,45 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 
 		final BracketeerProcessingContainer cont = _processingThread.getBracketContainer();
 		final List<BracketsPair> pairs = cont.getMatchingPairs(caret, 1);
+		final List<MatchingStatements> statements = cont.getMatchingStatements(caret, 1);
 		Assert.isTrue(pairs.size() <= 1);
 		if (pairs.size() == 0) {
 			return;
 		}
 
 		final BracketsPair pair = pairs.get(0);
-		Position pos = pair.getOpeningBracket().getPosition();
-		if (pos != null && pos.getOffset() == caret) {
+		Position brPos = pair.getOpeningBracket().getPosition();
+		if (brPos != null && brPos.getOffset() == caret) {
 			_mousePointingAtBracket = pair.getOpeningBracket();
 		}
-		pos = pair.getClosingBracket().getPosition();
-		if (pos != null && pos.getOffset() == caret) {
+		brPos = pair.getClosingBracket().getPosition();
+		if (brPos != null && brPos.getOffset() == caret) {
 			_mousePointingAtBracket = pair.getClosingBracket();
 		}
 
-		if (_mousePointingAtBracket == null) {
+		final MatchingStatements statement = statements.get(0);
+		Position stPos = statement.getOpeningStatement().getPosition();
+		if (stPos != null && stPos.getOffset() == caret) {
+			_mousePointingAtStatement = statement.getOpeningStatement();
+		}
+		stPos = statement.getClosingStatement().getPosition();
+		if (stPos != null && stPos.getOffset() == caret) {
+			_mousePointingAtStatement = statement.getClosingStatement();
+		}
+
+		if (_mousePointingAtBracket == null && _mousePointingAtStatement == null) {
 			Activator.log(Messages.BracketsHighlighter_ErrBracketNotFound);
 			return;
 		}
 
-		synchronized (_hoveredPairsToPaint) {
-			addPaintableObjectsPairs(pairs, 0, 1, _hoveredPairsToPaint);
+		if (_mousePointingAtStatement == null) {
+			synchronized (_hoveredPairsToPaint) {
+				addPaintableObjectsPairs(pairs, 0, 1, _hoveredPairsToPaint);
+			}
+		} else {
+			synchronized (_hoveredStatementsToPaint) {
+				addPaintableObjectsPairs(statements, 0, 1, _hoveredStatementsToPaint);
+			}
 		}
 
 		// TODO: optimize? (redraw only the needed sections)
@@ -706,6 +802,7 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 
 	private void caretMovedTo(final int caretOffset) {
 		boolean update = updateSurroundingPairsToPaint(caretOffset);
+		update |= updateSurroundingStatementsToPaint(caretOffset);
 		update |= clearHoveredPairsToPaint();
 		update |= clearHoveredHint();
 		clearPopup();
@@ -722,13 +819,13 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		}
 
 		final BracketeerProcessingContainer cont = _processingThread.getBracketContainer();
-		List<BracketsPair> listOfPairs = cont.getPairsSurrounding(caretOffset);
+		List<? extends MatchObject> listOfPairs = cont.getPairsSurrounding(caretOffset);
 
 		/* excluding... */
 		final String includedPairs = _conf.getPairConfiguration().getSurroundingPairsToInclude();
-		final Iterator<BracketsPair> it = listOfPairs.iterator();
+		final Iterator<? extends MatchObject> it = listOfPairs.iterator();
 		while (it.hasNext()) {
-			final BracketsPair pair = it.next();
+			final BracketsPair pair = (BracketsPair) it.next();
 			for (final SingleBracket br : pair.getBrackets()) {
 				if (includedPairs.indexOf(br.getChar()) == -1) {
 					it.remove();
@@ -758,6 +855,51 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		return true;
 	}
 
+	private boolean updateSurroundingStatementsToPaint(final int caretOffset) {
+		if (!_conf.getMatchingStatementsConfiguration().isSurroundingStatementsEnabled()) {
+			return clearSurroundingStatementsToPaint();
+		}
+
+		final BracketeerProcessingContainer cont = _processingThread.getBracketContainer();
+		List<? extends MatchObject> listOfStatements = cont.getStatementsSurrounding(caretOffset);
+
+		/* excluding... */
+//		TODO:check this
+//		final String includedStatements = _conf.getMatchingStatementsConfiguration()
+//				.getSurroundingStatementsToInclude();
+		final Iterator<? extends MatchObject> it = listOfStatements.iterator();
+		while (it.hasNext()) {
+			final MatchingStatements statements = (MatchingStatements) it.next();
+			for (final SingleStatement br : statements.getStatements()) {
+				if (includedStatements.indexOf(br.getChar()) == -1) {
+					it.remove();
+					break;
+				}
+			}
+
+			if (statements.getDistanceBetweenStatements() - 1 < _conf.getMatchingStatementsConfiguration()
+					.getMinDistanceBetweenStatements()) {
+				it.remove();
+			}
+		}
+
+		listOfStatements = sortPairs(listOfStatements);
+		listOfStatements = listOfStatements.subList(0, Math.min(
+				_conf.getMatchingStatementsConfiguration().getSurroundingStatementsCount(), listOfStatements.size()));
+
+		// do nothing if _surroundingPairsToPaint is equal to listOfPairs
+		if (areEqualPairs(listOfStatements, _surroundingPairsToPaint)) {
+			return false;
+		}
+
+		clearSurroundingPairsToPaint();
+		synchronized (_surroundingPairsToPaint) {
+			addPaintableObjectsPairs(listOfStatements, 0, 1, _surroundingPairsToPaint);
+		}
+
+		return true;
+	}
+
 	private boolean updateSingleBrackets() {
 		final BracketeerProcessingContainer cont = _processingThread.getBracketContainer();
 		final List<SingleBracket> list = cont.getSingleBrackets();
@@ -770,6 +912,23 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		clearSingleBracketsToPaint();
 		synchronized (_singleBracketsToPaint) {
 			addPaintableObjectsSingles(list, _singleBracketsToPaint);
+		}
+
+		return true;
+	}
+
+	private boolean updateSingleStatements() {
+		final BracketeerProcessingContainer cont = _processingThread.getBracketContainer();
+		final List<SingleStatement> list = cont.getSingleStatements();
+
+		// do nothing if _surroundingPairsToPaint is equal to listOfPairs
+		if (areEqualSingle(list, _singleStatementsToPaint)) {
+			return false;
+		}
+
+		clearSingleStatementsToPaint();
+		synchronized (_singleStatementsToPaint) {
+			addPaintableObjectsSingles(list, _singleStatementsToPaint);
 		}
 
 		return true;
@@ -817,19 +976,19 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		return true;
 	}
 
-	private List<BracketsPair> sortPairs(final List<BracketsPair> listOfPairs) {
-		final List<BracketsPair> ret = new ArrayList<>(listOfPairs.size());
+	private List<MatchObject> sortPairs(final List<? extends MatchObject> listOfbjects) {
+		final List<MatchObject> ret = new ArrayList<>(listOfbjects.size());
 
-		for (final BracketsPair pair : listOfPairs) {
+		for (final MatchObject object : listOfbjects) {
 			int i = 0;
 			while (i < ret.size()) {
-				if (ret.get(i).getOpeningBracket().getPositionRaw().offset < pair.getOpeningBracket()
+				if (ret.get(i).getOpeningObject().getPositionRaw().offset < object.getOpeningObject()
 						.getPositionRaw().offset) {
 					break;
 				}
 				i++;
 			}
-			ret.add(i, pair);
+			ret.add(i, object);
 		}
 
 		return ret;
@@ -840,6 +999,7 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 	 */
 	private boolean mouseHoverAt(final StyledText st, final int origCaret) {
 		boolean ret = markHoveredBrackets(origCaret);
+		ret |= markHoveredStatements(origCaret);
 		ret |= showHoveredHint(origCaret);
 		ret |= showPopup(origCaret);
 		return ret;
@@ -847,12 +1007,12 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 
 	private boolean showPopup(final int origCaret) {
 		clearPopup();
-		if (!_conf.getPairConfiguration().isPopupEnabled()) {
+		if (!_conf.getMatchingStatementsConfiguration().isPopupEnabled()) {
 			return false;
 		}
 
 		try {
-			if (_conf.getPairConfiguration().showPopupOnlyWithoutHint() && _hoveredHintToPaint != null
+			if (_conf.getMatchingStatementsConfiguration().showPopupOnlyWithoutHint() && _hoveredHintToPaint != null
 					&& _hoveredHintToPaint.isOkToShow(_doc)) {
 				return false;
 			}
@@ -861,40 +1021,41 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		}
 
 		final BracketeerProcessingContainer cont = _processingThread.getBracketContainer();
-		final List<BracketsPair> listOfPairs = cont.getMatchingPairs(origCaret, 1);
-		if (listOfPairs.isEmpty()) {
+		final List<MatchingStatements> listOfStatements = cont.getMatchingStatements(origCaret, 1);
+		if (listOfStatements.isEmpty()) {
 			return false;
 		}
 
-		final BracketsPair pair = listOfPairs.get(0);
-		Position pos = pair.getClosingBracket().getPosition();
-		if (pos == null || !pos.overlapsWith(origCaret, 2) || pair.getClosingBracket().getChar() != '}') {
-			return false;
-		}
+		final MatchingStatements statements = listOfStatements.get(0);
+		Position pos = statements.getClosingStatement().getPosition();
+//		TODO: check this
+//		if (pos == null || !pos.overlapsWith(origCaret, 2) || statements.getClosingStatement().getChar() != '}') {
+//			return false;
+//		}
 
-		pos = pair.getOpeningBracket().getPosition();
-		// this this bracket visible?
+		pos = statements.getOpeningStatement().getPosition();
+		// this this statement visible?
 		if (pos == null || getInclusiveTopIndexStartOffset() < pos.getOffset()) {
 			return false;
 		}
 
-		PaintableBracket paintBracket = null;
-		synchronized (_hoveredPairsToPaint) {
-			for (final PaintableBracket paintableBracket : _hoveredPairsToPaint) {
-				if (paintableBracket.getPosition().equals(pos)) {
-					paintBracket = paintableBracket;
+		PaintableStatement paintStatement = null;
+		synchronized (_hoveredStatementsToPaint) {
+			for (final PaintableStatement paintableStatement : _hoveredStatementsToPaint) {
+				if (paintableStatement.getPosition().equals(pos)) {
+					paintStatement = paintableStatement;
 					break;
 				}
 			}
 		}
 
-		if (paintBracket == null) {
+		if (paintStatement == null) {
 			Activator.log(Messages.BracketsHighlighter_MatchNotHighlighetd);
 			return false;
 		}
 
 		try {
-			_popup = new Popup(_sourceViewer, _textWidget, _doc, paintBracket);
+			_popup = new Popup(_sourceViewer, _textWidget, _doc, paintStatement);
 		} catch (final BadLocationException e) {
 			_popup = null;
 			return false;
@@ -917,7 +1078,7 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		final int startPoint = origCaret - 2;
 
 		final BracketeerProcessingContainer cont = _processingThread.getBracketContainer();
-		List<BracketsPair> listOfPairs = cont.getMatchingPairs(startPoint, length);
+		List<? extends MatchObject> listOfPairs = cont.getMatchingPairs(startPoint, length);
 		listOfPairs = sortPairs(listOfPairs);
 
 		if (listOfPairs.isEmpty()) {
@@ -932,6 +1093,44 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		clearHoveredPairsToPaint();
 		synchronized (_hoveredPairsToPaint) {
 			addPaintableObjectsPairs(listOfPairs, 0, 1, _hoveredPairsToPaint);
+		}
+
+		// TODO: optimize? (redraw only the needed sections)
+		_textWidget.redraw();
+
+		// drawHighlights();
+		return true;
+	}
+
+	private boolean markHoveredStatements(final int origCaret) {
+
+		// int startPoint = Math.max(0, origCaret - 2);
+		// int endPoint = Math.min(_sourceViewer.getDocument().getLength(),
+		// origCaret + 2);
+
+		if (!_conf.getMatchingStatementsConfiguration().isHoveredPairsEnabled()) {
+			return false;
+		}
+
+		final int length = 4;
+		final int startPoint = origCaret - 2;
+
+		final BracketeerProcessingContainer cont = _processingThread.getBracketContainer();
+		List<? extends MatchObject> listOfStatements = cont.getMatchingStatements(startPoint, length);
+		listOfStatements = sortPairs(listOfStatements);
+
+		if (listOfStatements.isEmpty()) {
+			return false;
+		}
+
+		// do nothing if _hoveredPairsToPaint is equal to listOfPairs
+		if (areEqualPairs(listOfStatements, _hoveredStatementsToPaint)) {
+			return true;
+		}
+
+		clearHoveredPairsToPaint();
+		synchronized (_hoveredPairsToPaint) {
+			addPaintableObjectsPairs(listOfStatements, 0, 1, _hoveredStatementsToPaint);
 		}
 
 		// TODO: optimize? (redraw only the needed sections)
@@ -972,16 +1171,17 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		return hint != null;
 	}
 
-	private boolean areEqualPairs(final List<BracketsPair> listOfPairs, final List<PaintableBracket> pairsToPaint) {
-		if (listOfPairs.size() * 2 != pairsToPaint.size()) {
+	private boolean areEqualPairs(final List<? extends MatchObject> listOfobjects,
+			final List<? extends PaintableObject> objectsToPaint) {
+		if (listOfobjects.size() * 2 != objectsToPaint.size()) {
 			return false;
 		}
 
-		for (final BracketsPair bracketsPair : listOfPairs) {
-			for (final SingleBracket bracket : bracketsPair.getBrackets()) {
+		for (final MatchObject objects : listOfobjects) {
+			for (final SingleObject object : objects.getObjects()) {
 				boolean found = false;
-				for (final PaintableObject paintableObject : pairsToPaint) {
-					if (paintableObject.getPosition().equals(bracket.getPositionRaw())) {
+				for (final PaintableObject paintableObject : objectsToPaint) {
+					if (paintableObject.getPosition().equals(object.getPositionRaw())) {
 						found = true;
 						break;
 					}
@@ -995,15 +1195,16 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		return true;
 	}
 
-	private boolean areEqualSingle(final List<SingleBracket> list, final List<PaintableBracket> singlesToPaint) {
+	private boolean areEqualSingle(final List<? extends SingleObject> list,
+			final List<? extends PaintableObject> singlesToPaint) {
 		if (list.size() != singlesToPaint.size()) {
 			return false;
 		}
 
-		for (final SingleBracket bracket : list) {
+		for (final SingleObject object : list) {
 			boolean found = false;
 			for (final PaintableObject paintableObject : singlesToPaint) {
-				if (paintableObject.getPosition().equals(bracket.getPositionRaw())) {
+				if (paintableObject.getPosition().equals(object.getPositionRaw())) {
 					found = true;
 					break;
 				}
@@ -1016,31 +1217,43 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		return true;
 	}
 
-	private void addPaintableObjectsPairs(final List<BracketsPair> listOfPairs, int colorCode, final int colorCodeStep,
-			final List<PaintableBracket> paintableObjectsList) {
-		for (final BracketsPair bracketsPair : listOfPairs) {
-			for (final SingleBracket bracket : bracketsPair.getBrackets()) {
-				final Position pos = bracket.getPositionRaw();
+	private void addPaintableObjectsPairs(final List<? extends MatchObject> listOfObjects, int colorCode,
+			final int colorCodeStep, final List<? extends PaintableObject> paintableObjectsList) {
+		for (final MatchObject matchingObjects : listOfObjects) {
+			for (final SingleObject singleObject : matchingObjects.getObjects()) {
+				final Position pos = singleObject.getPositionRaw();
 				final RGB fg = _conf.getPairConfiguration().getColor(true, colorCode);
 				final RGB bg = _conf.getPairConfiguration().getColor(false, colorCode);
 				final String highlightType = _conf.getPairConfiguration().getHighlightType(colorCode);
-				paintableObjectsList.add(new PaintableBracket(pos, fg, bg, highlightType));
+				if (singleObject instanceof SingleStatement) {
+					paintableObjectsList.add(new PaintableStatement(pos, fg, bg, highlightType));
+				} else {
+					paintableObjectsList.add(new PaintableBracket(pos, fg, bg, highlightType));
+				}
+
 			}
 			colorCode += colorCodeStep;
 		}
 	}
 
-	private void addPaintableObjectsSingles(final List<SingleBracket> listOfSingles,
-			final List<PaintableBracket> paintableObjectsList) {
+	private void addPaintableObjectsSingles(final List<? extends SingleObject> listOfSingles,
+			final List<? extends PaintableObject> paintableObjectsList) {
+		boolean annotateIsSet;
 		final Map<Annotation, Position> newMap = new HashMap<>();
-		for (final SingleBracket bracket : listOfSingles) {
-			final Position pos = bracket.getPositionRaw();
+		for (final SingleObject object : listOfSingles) {
+			final Position pos = object.getPositionRaw();
 			final RGB fg = _conf.getSingleBracketConfiguration().getColor(true);
 			final RGB bg = _conf.getSingleBracketConfiguration().getColor(false);
 			final String highlightType = _conf.getSingleBracketConfiguration().getHighlightType();
-			paintableObjectsList.add(new PaintableBracket(pos, fg, bg, highlightType));
+			if (object instanceof SingleStatement) {
+				paintableObjectsList.add(new PaintableStatement(pos, fg, bg, highlightType));
+				annotateIsSet = _conf.getSingleStatementConfiguration().getAnnotate();
+			} else {
+				paintableObjectsList.add(new PaintableBracket(pos, fg, bg, highlightType));
+				annotateIsSet = _conf.getSingleBracketConfiguration().getAnnotate();
+			}
 
-			if (_conf.getSingleBracketConfiguration().getAnnotate() && _resource != null && _annotationMap != null) {
+			if (annotateIsSet && _resource != null && _annotationMap != null) {
 				try {
 					final IMarker marker = _resource
 							.createMarker("me.glindholm.plugin.bracketeer2.unmatchedBracket.marker"); //$NON-NLS-1$
@@ -1117,6 +1330,36 @@ public class BracketsHighlighter implements CaretListener, Listener, PaintListen
 		synchronized (_singleBracketsToPaint) {
 			if (!_singleBracketsToPaint.isEmpty()) {
 				_singleBracketsToPaint.clear();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean clearHoveredStatementsToPaint() {
+		synchronized (_hoveredStatementsToPaint) {
+			if (!_hoveredStatementsToPaint.isEmpty()) {
+				_hoveredStatementsToPaint.clear();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean clearSurroundingStatementsToPaint() {
+		synchronized (_surroundingStatementsToPaint) {
+			if (!_surroundingStatementsToPaint.isEmpty()) {
+				_surroundingStatementsToPaint.clear();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean clearSingleStatementsToPaint() {
+		synchronized (_singleStatementsToPaint) {
+			if (!_singleStatementsToPaint.isEmpty()) {
+				_singleStatementsToPaint.clear();
 				return true;
 			}
 		}
